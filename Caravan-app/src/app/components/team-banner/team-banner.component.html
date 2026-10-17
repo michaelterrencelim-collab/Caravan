@@ -1,0 +1,17 @@
+<div class="banner-backdrop" (click)="dismiss.emit()">
+  <section
+    class="team-banner"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="team-banner-title"
+    (click)="$event.stopPropagation()">
+    <header class="banner-header">
+      <div class="team-identity">
+        <img src="assets/Images/Caravan-Icon.png" alt="" />
+        <h2 id="team-banner-title">The Caravan Team</h2>
+      </div>
+      <button class="close-button" type="button" (click)="dismiss.emit()">Close</button>
+    </header>
+    <p class="banner-message" role="status">{{ loading ? 'Loading...' : (message || 'Content unavailable.') }}</p>
+  </section>
+</div>

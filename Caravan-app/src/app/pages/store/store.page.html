@@ -1,0 +1,104 @@
+<ion-content>
+  <div class="store-page">
+    <section class="function-bar" aria-label="Store filters">
+      <form class="search-field" (ngSubmit)="filtersChanged()">
+        <input
+          type="search"
+          class="searchbar"
+          name="search"
+          placeholder="Search for products..."
+          [(ngModel)]="searchInput"
+          (ngModelChange)="filtersChanged()">
+        <button class="searchbtn" type="submit" aria-label="Search">⌕</button>
+      </form>
+
+      <label class="filter-control">
+        <span>Filter by Country:</span>
+        <select name="country" [(ngModel)]="selectedCountry" (ngModelChange)="filtersChanged()">
+          <option value="">All Countries</option>
+          @for (country of countries; track country) { <option [value]="country">{{ country }}</option> }
+        </select>
+      </label>
+
+      <fieldset class="price-filter">
+        <legend>Filter by Price</legend>
+        <label>Min <input type="number" name="minimumPrice" min="0" step="0.01" [(ngModel)]="minimumPrice" (ngModelChange)="filtersChanged()"></label>
+        <label>Max <input type="number" name="maximumPrice" min="0" step="0.01" [(ngModel)]="maximumPrice" (ngModelChange)="filtersChanged()"></label>
+      </fieldset>
+    </section>
+
+    <div class="browse-layout">
+      <aside class="category-sidebar" aria-label="Product categories">
+        <h2>Categories</h2>
+        <button type="button" class="category-option" [class.active]="!selectedCategory" (click)="selectCategory('')">All Categories</button>
+        @for (category of availableCategories; track category) {
+          <button
+            type="button"
+            class="category-option"
+            [class.active]="selectedCategory === category"
+            [attr.aria-pressed]="selectedCategory === category"
+            (click)="selectCategory(category)">
+            {{ category }}
+          </button>
+        }
+      </aside>
+
+      <main class="store-content">
+        <div class="tabs-container" role="tablist" aria-label="Browse product type">
+          <button type="button" role="tab" [attr.aria-selected]="currentTab === 'products'" class="tab-button" [class.active]="currentTab === 'products'" (click)="switchTab('products')">Products</button>
+          <button type="button" role="tab" [attr.aria-selected]="currentTab === 'bundles'" class="tab-button" [class.active]="currentTab === 'bundles'" (click)="switchTab('bundles')">Bundles</button>
+        </div>
+
+        <h1 class="section-title">{{ currentTab === 'products' ? 'Products' : 'Bundles' }}</h1>
+
+        @if (loading) {
+          <div class="content-loader">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Loading {{ currentTab }}...</p>
+          </div>
+        } @else if (error) {
+          <div class="noitem-container">
+            <div class="noitem-content error-content">
+              <p>{{ error }}</p>
+              <button type="button" class="retry-button" (click)="loadItems()">Retry</button>
+            </div>
+          </div>
+        } @else if (filteredItems.length === 0) {
+          <div class="noitem-container">
+            <div class="noitem-content">
+              <img src="assets/Images/ItemNotFound_nobg.png" alt="No matching items found" class="noitem-image">
+              <h2>Sorry, we couldn't find any {{ currentTab }} matching your search.</h2>
+            </div>
+          </div>
+        } @else {
+          <section class="product-section" [attr.aria-label]="currentTab" [style.--market-grid-columns]="settings.marketColumns()">
+            @for (item of visibleItems; track item.product_id) {
+              <button type="button" class="product-card" (click)="openItem(item)" [attr.aria-label]="'View ' + item.product_name">
+                <img class="product-image" [src]="item.product_image || 'assets/Images/ItemNotFound_nobg.png'" [alt]="item.product_name" (error)="imageFailed($event)">
+                <div class="product-info">
+                  <h3 class="product-name">{{ item.product_name }}</h3>
+                  <p class="product-price">{{ formatCurrency(+item.product_price || 0) }}/oz.</p>
+                  <div class="product-rating" [attr.aria-label]="ratingLabel(item)">
+                    <span class="rating-stars">{{ starString(item) }}</span>
+                    <span class="rating-label">{{ ratingLabel(item) }}</span>
+                  </div>
+                  <p class="product-likes">♡ {{ item.product_likes || 0 }} likes</p>
+                </div>
+              </button>
+            }
+          </section>
+
+          <nav class="pagination" aria-label="Product pages">
+            <button type="button" (click)="previousPage()" [disabled]="currentPage <= 1">Previous</button>
+            <label>Page
+              <input type="number" min="1" [max]="totalPages" [ngModel]="currentPage" (ngModelChange)="goToPage($event)" aria-label="Current product page">
+              of {{ totalPages }}
+            </label>
+            <button type="button" (click)="nextPage()" [disabled]="currentPage >= totalPages">Next</button>
+          </nav>
+          <p class="page-count">Showing {{ visibleItems.length }} of {{ filteredItems.length }} {{ currentTab }}</p>
+        }
+      </main>
+    </div>
+  </div>
+</ion-content>
